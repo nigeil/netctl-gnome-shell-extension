@@ -42,10 +42,13 @@ const PopupMenu = imports.ui.popupMenu;
 
 
 //Names of icons for the activities bar
-const NETWORK_CONNECTED = 'network-wireless-signal-excellent-symbolic';
+const NETWORK_EXCELLENT = 'network-wireless-signal-excellent-symbolic';
 //const NETWORK_CONNECTED = 'network-wireless';
 const NETWORK_OFFLINE = 'network-wireless-offline-symbolic';
 //const NETWORK_OFFLINE = 'network-offline';
+const NETWORK_GOOD = 'network-wireless-signal-good-symbolic';
+const NETWORK_OK = 'network-wireless-signal-ok-symbolic';
+const NETWORK_WEAK = 'network-wireless-signal-weak-symbolic';
 
 const REFRESH_TIME = 3     //seconds
 
@@ -143,7 +146,18 @@ const NetctlSwitcher = new Lang.Class({
       if(this._get_connected_networks() == null){
           this.icon.icon_name = NETWORK_OFFLINE;
       } else {
-          this.icon.icon_name = NETWORK_CONNECTED;
+          var signal_information = GLib.spawn_command_line_sync("cat /proc/net/wireless")[1].toString().split('\n');
+          var signal_strength = parseInt(signal_information[2].trim().split(/\s+/)[2]);
+
+          if (signal_strength >= 60) {
+              this.icon.icon_name = NETWORK_EXCELLENT;
+          } else if (signal_strength >= 50) {
+              this.icon.icon_name = NETWORK_GOOD;
+          } else if (signal_strength >= 40) {
+              this.icon.icon_name = NETWORK_OK;
+          } else {
+              this.icon.icon_name = NETWORK_WEAK;
+          }
       }
    },
 
