@@ -2,7 +2,7 @@
  * Netctl Menu is a Gnome 3 extension that allows you to  switch between netctl
  * profiles using a menu in the notification area.
  *
- * Copyright (C) 2016 Nigel S. Michki 
+ * Copyright (C) 2016 Nigel S. Michki
  * Previous contributors :
  * - Tjaart van der Walt (original creator)
  *
@@ -19,6 +19,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
+ // Custom JSLint configurtations
+ // Allow the use ECMAScript 6 specific syntax, e.g. const
+ // jshint esnext: true
 
 
 //Imports/definitions
@@ -50,7 +55,8 @@ const NETWORK_GOOD = 'network-wireless-signal-good-symbolic';
 const NETWORK_OK = 'network-wireless-signal-ok-symbolic';
 const NETWORK_WEAK = 'network-wireless-signal-weak-symbolic';
 
-const REFRESH_TIME = 3     //seconds
+// Refresh time in seconds
+const REFRESH_TIME = 3;
 
 //The extension core
 const NetctlSwitcher = new Lang.Class({
@@ -60,11 +66,11 @@ const NetctlSwitcher = new Lang.Class({
    _init: function(){
       this.parent(0.0, 'NetctlSwitcher');
 
-      this.icon = new St.Icon({icon_name: 'network-wireless-acquiring-symbolic', 
+      this.icon = new St.Icon({icon_name: 'network-wireless-acquiring-symbolic',
          style_class: 'system-status-icon'});
-      let box = new St.BoxLayout({vertical: false, 
+      let box = new St.BoxLayout({vertical: false,
          style_class: 'panel-status-menu-box'});
-      this.label = new St.Label({text: '', y_expand: true, 
+      this.label = new St.Label({text: '', y_expand: true,
          y_align: Clutter.ActorAlign.CENTER});
       box.add_child(this.icon);
       box.add_child(this.label);
@@ -79,17 +85,17 @@ const NetctlSwitcher = new Lang.Class({
    },
 
    _netctlOff: function(){
-      GLib.spawn_command_line_sync("netctl-auto disable-all")
+      GLib.spawn_command_line_sync("netctl-auto disable-all");
    },
 
    _netctlOn: function(){
-      GLib.spawn_command_line_sync("netctl-auto enable-all")
+      GLib.spawn_command_line_sync("netctl-auto enable-all");
    },
 
    _get_network_profiles: function() {
       var profileString = GLib.spawn_command_line_sync("netctl-auto list")[1].toString();
-      var profileArray = profileString.split("\n")
-         return profileArray.splice(0, profileArray.length - 1)
+      var profileArray = profileString.split("\n");
+      return profileArray.splice(0, profileArray.length - 1);
    },
 
    _get_connected_networks: function() {
@@ -143,7 +149,7 @@ const NetctlSwitcher = new Lang.Class({
    },
 
    _set_icon: function(){
-      if(this._get_connected_networks() == null){
+      if(this._get_connected_networks() === null){
           this.icon.icon_name = NETWORK_OFFLINE;
       } else {
           var signal_information = GLib.spawn_command_line_sync("cat /proc/net/wireless")[1].toString().split('\n');
@@ -162,7 +168,7 @@ const NetctlSwitcher = new Lang.Class({
    },
 
    _refresh_details: function() {
-      event = GLib.timeout_add_seconds(0, REFRESH_TIME, Lang.bind(this, function () {
+      GLib.timeout_add_seconds(0, REFRESH_TIME, Lang.bind(this, function () {
          this._set_icon();
          this._update_menu();
          return true;
@@ -184,4 +190,3 @@ function enable() {
 function disable() {
    netctlSwitcher.destroy();
 }
-
