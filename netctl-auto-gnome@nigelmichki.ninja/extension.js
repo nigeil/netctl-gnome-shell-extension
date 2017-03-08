@@ -26,8 +26,7 @@
 // jshint esnext: true
 
 
-//Imports/definitions
-
+// Imports and definitions
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
@@ -43,10 +42,8 @@ const Panel = imports.ui.panel;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 
-//Items of interest
 
-
-//Names of icons for the activities bar
+// Names of icons for the activities bar
 const NETWORK_EXCELLENT = 'network-wireless-signal-excellent-symbolic';
 //const NETWORK_CONNECTED = 'network-wireless';
 const NETWORK_OFFLINE = 'network-wireless-offline-symbolic';
@@ -58,7 +55,7 @@ const NETWORK_WEAK = 'network-wireless-signal-weak-symbolic';
 // Refresh time in seconds
 const REFRESH_TIME = 3;
 
-//The extension core
+// The extension core
 const NetctlSwitcher = new Lang.Class({
 	Name: 'NetctlSwitcher',
 	Extends: PanelMenu.Button,
@@ -76,11 +73,11 @@ const NetctlSwitcher = new Lang.Class({
 			box.add_child(this.label);
 			this.actor.add_actor(box);
 
-			//Initial population of the menu
+			// Initial population of the menu
 			this._set_icon();
 			this._update_menu();
 
-			//Refresh the menu every REFRESH_TIME seconds
+			// Refresh the menu every REFRESH_TIME seconds
 			this._refresh_details();
 		},
 
