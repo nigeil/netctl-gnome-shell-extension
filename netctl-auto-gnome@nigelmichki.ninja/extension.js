@@ -76,44 +76,66 @@ const NetctlSwitcher = new Lang.Class({
    },
 
    _netctlOff: function(){
-      GLib.spawn_command_line_sync("netctl-auto disable-all")
+      this._execute_async("netctl-auto disable-all")
    },
 
    _netctlOn: function(){
-      GLib.spawn_command_line_sync("netctl-auto enable-all")
+      this._execute_async("netctl-auto enable-all")
    },
 
-   _get_network_profiles: function() {
-      var profileString = GLib.spawn_command_line_sync("netctl-auto list")[1].toString();
+   _get_network_profiles: async function() {
+      var profileString = await this._execute_async("netctl-auto list");
       var profileArray = profileString.split("\n")
+
+      log(profileString, profileArray)
          return profileArray.splice(0, profileArray.length - 1)
    },
 
-   _get_connected_networks: function() {
-      let networks =  GLib.spawn_command_line_sync("netctl-auto list")[1].toString();
+   _get_connected_networks: async function() {
+      let networks =  await this._execute_async("netctl-auto list");
       let connected = networks.match(/\*.*/g);
+
       return connected;
    },
 
-   _switch_to_profile: function(profileName) {
-      this._execute_async("/usr/bin/netctl-auto switch-to " + profileName);
+   _switch_to_profile: async function(profileName) {
+      const out = await this._execute_async("/usr/bin/netctl-auto switch-to " + profileName);
    },
 
-   _execute_async: function(command) {
+   _execute_async: async function(command) {
       try {
-         let [result, argv] = GLib.shell_parse_argv(command);
-         GLib.spawn_async(null, argv, null, GLib.SpawnFlags.SEARCH_PATH, null);
+         let [, argv] = GLib.shell_parse_argv(command);
+         let proc = new Gio.Subprocess({
+            argv,
+            flags: Gio.SubprocessFlags.STDOUT_PIPE
+         })
+
+         proc.init(null)
+
+         let stdout = await new Promise((resolve, reject) => {
+            proc.communicate_utf8_async(null, null, (proc, res) => {
+               try {
+                  let [ok, stdout, stderr] = proc.communicate_utf8_finish(res);
+                  resolve(stdout);
+               } catch (e) {
+                  reject(e);
+               }
+            });
+         });
+
+         return stdout;
       }
       catch (e) {
          global.logError(e);
       }
    },
 
-   _update_menu: function() {
+   _update_menu: async function() {
+      var profiles = await this._get_network_profiles();
+
       this.menu.removeAll();
 
       this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(_('Profiles')));
-      var profiles = this._get_network_profiles();
       for(let i = 0; i < profiles.length; i++){
          this._add_profile_menu_item(profiles[i]);
       }
@@ -139,8 +161,8 @@ const NetctlSwitcher = new Lang.Class({
       }
    },
 
-   _set_icon: function(){
-      if(this._get_connected_networks() == null){
+   _set_icon: async function(){
+      if((await this._get_connected_networks()) == null){
           this.icon.icon_name = NETWORK_OFFLINE;
       } else {
           this.icon.icon_name = NETWORK_CONNECTED;
@@ -148,7 +170,7 @@ const NetctlSwitcher = new Lang.Class({
    },
 
    _refresh_details: function() {
-      event = GLib.timeout_add_seconds(0, REFRESH_TIME, Lang.bind(this, function () {
+      GLib.timeout_add_seconds(0, REFRESH_TIME, Lang.bind(this, function () {
          if(enabled){
             this._set_icon();
             this._update_menu();
