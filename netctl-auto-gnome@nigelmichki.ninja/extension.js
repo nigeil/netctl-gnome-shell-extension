@@ -149,25 +149,33 @@ const NetctlSwitcher = new Lang.Class({
 
    _refresh_details: function() {
       event = GLib.timeout_add_seconds(0, REFRESH_TIME, Lang.bind(this, function () {
-         this._set_icon();
-         this._update_menu();
-         return true;
+         if(enabled){
+            this._set_icon();
+            this._update_menu();
+            return true;
+         }
+         else {
+            return false;
+         }
       }));
    }
 
 });
 
 let netctlSwitcher;
+let enabled = false;
 
 function init() {
 }
 
 function enable() {
+   enabled = true
    netctlSwitcher = new NetctlSwitcher();
    Main.panel.addToStatusArea('NetctlSwitcher', netctlSwitcher);
 }
 
 function disable() {
    netctlSwitcher.destroy();
+   enabled = false;
 }
 
